@@ -1,0 +1,2 @@
+include ':app', ':slowmotion-camera'
+rootProject.name='Ez Camera'
