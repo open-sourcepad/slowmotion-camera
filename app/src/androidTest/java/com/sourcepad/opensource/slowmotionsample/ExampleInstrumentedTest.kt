@@ -1,4 +1,4 @@
-package com.sourcepad.opensource.ezcamerasample
+package com.sourcepad.opensource.slowmotionsample
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

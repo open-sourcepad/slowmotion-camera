@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">Ez Camera</string>
+    <string name="app_name">Slow Motion Camera</string>
+    <string name="record">Record</string>
 </resources>

@@ -4,7 +4,7 @@ apply plugin: 'kotlin-android-extensions'
 
 ext {
     bintrayRepo = 'opensource'
-    bintrayName = 'multiprogressbar'
+    bintrayName = 'slowmotioncam'
     organization = 'sourcepad'
 
     publishedGroupId = 'com.sourcepad.opensource'
@@ -13,8 +13,8 @@ ext {
 
     libraryDescription = 'Handle high speed/high fps video recording'
 
-    siteUrl = 'https://github.com/open-sourcepad/MultiProgressbar'
-    gitUrl = 'https://github.com/open-sourcepad/MultiProgressbar'
+    siteUrl = 'https://github.com/open-sourcepad/slowmotion-camera'
+    gitUrl = 'https://github.com/open-sourcepad/slowmotion-camera'
 
     libraryVersion = '0.1.1'
 

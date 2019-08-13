@@ -1,4 +1,4 @@
-package com.sourcepad.opensource.ezcamera
+package com.sourcepad.opensource.slowmotioncamera
 
 import android.content.Context
 import android.util.AttributeSet

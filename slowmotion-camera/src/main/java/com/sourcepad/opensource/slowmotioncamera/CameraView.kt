@@ -1,4 +1,4 @@
-package com.sourcepad.opensource.ezcamera
+package com.sourcepad.opensource.slowmotioncamera
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -10,7 +10,6 @@ import android.graphics.SurfaceTexture
 import android.hardware.camera2.*
 import android.hardware.camera2.params.StreamConfigurationMap
 import android.media.MediaRecorder
-import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.*
@@ -56,7 +55,7 @@ class CameraView : FrameLayout {
     private var previewSessionHighSpeed: CameraConstrainedHighSpeedCaptureSession? = null
     private var previewSession: CameraCaptureSession? = null
     //Must be at least 120 fps
-    private lateinit var fps: Range<Int>
+    private var fps: Range<Int>? = null
 
     lateinit var videoSize: Size
     private var previewBuilder: CaptureRequest.Builder? = null
@@ -104,11 +103,16 @@ class CameraView : FrameLayout {
 
     }
 
+    var onCameraOpened = {
 
-        private val stateCallback = object : CameraDevice.StateCallback() {
+    }
+
+
+    private val stateCallback = object : CameraDevice.StateCallback() {
 
         override fun onOpened(@NonNull cameraDevice: CameraDevice) {
             this@CameraView.cameraDevice = cameraDevice
+            onCameraOpened.invoke()
             Log.d(TAG, "Camera opened")
             startPreview()
             cameraOpenCloseLock.release()
@@ -140,10 +144,36 @@ class CameraView : FrameLayout {
     }
 
 
+    fun setFps(range: Range<Int>) {
+        fps = range
+
+        val characteristics = manager.getCameraCharacteristics(cameraId)
+        val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+
+        val supportedSizeList = map?.getHighSpeedVideoSizesFor(fps)
+        val highestPossibleResolution = supportedSizeList?.maxBy { it.width }
+        if (highestPossibleResolution != null) {
+            videoSize = highestPossibleResolution
+        }
+
+        onPause()
+        onResume()
+
+    }
+
     fun isRecording(): Boolean {
         return isRecordingVideo
     }
 
+    fun getCurrentFps(): Int? {
+        return fps?.lower
+    }
+
+    fun getAvailableFps(): List<Range<Int>>? {
+        val characteristics = manager.getCameraCharacteristics(cameraId)
+        val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+        return map?.highSpeedVideoFpsRanges?.filter { it.lower == it.upper }
+    }
 
     private fun getFpsVideoSizePair(map: StreamConfigurationMap): kotlin.Pair<Range<Int>, Size>? {
         val fpsRange = map.highSpeedVideoFpsRanges.filter { it.lower == it.upper }
@@ -176,25 +206,22 @@ class CameraView : FrameLayout {
 
             val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
 
-            val fpsResolutionConfig = getFpsVideoSizePair(map!!)
-
-            if (fpsResolutionConfig != null) {
-                fps = fpsResolutionConfig.first
-                videoSize = fpsResolutionConfig.second
-//                textureView.setAspectRatio()
-//                textureView.setAspectRatio(videoSize.width, videoSize.height)
-
-//                previewSize = chooseOptimalSize(
-//                    map.getOutputSizes(SurfaceTexture::class.java),
-//                    width, height, videoSize!!)
-//                            previewSize = videoSize
+            if (fps != null) {
 
             } else {
-                throw UnsupportedOperationException()
+                val fpsResolutionConfig = getFpsVideoSizePair(map!!)
+
+                if (fpsResolutionConfig != null) {
+                    fps = fpsResolutionConfig.first
+                    videoSize = fpsResolutionConfig.second
+
+                } else {
+                    throw UnsupportedOperationException()
+                }
+
             }
 
             Log.d(TAG, "FPS $fps")
-            Log.d(TAG, "VideoDto size $videoSize")
 
             configureTransform(width, height)
 
@@ -308,10 +335,11 @@ class CameraView : FrameLayout {
         if (isRecordingVideo) {
             stopRecordingVideoOnPause()
         }
+        stopBackgroundThread()
+
         removeView(textureView)
 
         closeCamera()
-        stopBackgroundThread()
     }
 
 
@@ -357,7 +385,7 @@ class CameraView : FrameLayout {
             setOutputFile(path?.absolutePath)
             setMaxDuration(5000)
             setVideoEncodingBitRate(20000000)
-            setVideoFrameRate(fps.upper)
+            setVideoFrameRate(fps!!.upper)
             setVideoSize(videoSize.width, videoSize.height)
             setVideoEncoder(MediaRecorder.VideoEncoder.H264)
             val rotation = activity.windowManager.defaultDisplay.rotation

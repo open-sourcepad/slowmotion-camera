@@ -1,4 +1,4 @@
-package com.sourcepad.opensource.ezcamera
+package com.sourcepad.opensource.slowmotionsample
 
 import org.junit.Test
 
