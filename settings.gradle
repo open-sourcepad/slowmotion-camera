@@ -1,2 +1,2 @@
-include ':app', ':slowmotion-camera'
+include ':app', ':slowmotioncamera'
 rootProject.name='Ez Camera'
