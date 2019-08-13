@@ -22,3 +22,24 @@ In your build.gradle, add the following:
 
 ```
 
+```xml
+<com.sourcepad.opensource.slowmotioncamera.CameraView
+   android:layout_width="match_parent"
+   android:layout_height="match_parent"
+  />
+```
+
+In your activity/fragment
+``` kotlin
+  
+  override fun onResume(){
+     camera.onResume()
+  }
+  
+  override fun onPause(){
+     camera.onPause()
+  }
+  
+  ```
+
+
